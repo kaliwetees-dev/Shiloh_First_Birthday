@@ -108,7 +108,7 @@
 </head>
 <body class="plaid-blue">
 
-    <!-- Drifting icons -->
+    <!-- Drifting background icons -->
     <div class="drifter text-4xl" style="left: 10%; animation-duration: 25s; animation-delay: -5s;">🧸</div>
     <div class="drifter text-3xl" style="left: 30%; animation-duration: 18s; animation-delay: -2s;">✨</div>
     <div class="drifter text-5xl" style="left: 70%; animation-duration: 30s; animation-delay: -10s;">🐾</div>
@@ -191,7 +191,7 @@
         </div>
     </div>
 
-    <!-- Details -->
+    <!-- Details Section -->
     <section id="details" class="py-24 px-6">
         <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
             <div class="reveal bg-white p-12 rounded-[4rem] text-center shadow-sm border border-sky-100 hover:shadow-xl transition duration-500">
@@ -218,7 +218,7 @@
         </div>
     </section>
 
-    <!-- Story -->
+    <!-- Story Section -->
     <section id="about" class="py-24 bg-sky-50/50 px-6">
         <div class="max-w-4xl mx-auto text-center reveal">
             <span class="inline-block px-4 py-1 bg-sky-100 text-sky-800 rounded-full text-xs font-bold uppercase tracking-widest mb-8">Our Big Boy</span>
@@ -232,14 +232,14 @@
         </div>
     </section>
 
-    <!-- RSVP -->
+    <!-- RSVP Section -->
     <section id="rsvp" class="py-32 px-6 flex flex-col items-center">
         <div class="max-w-2xl w-full bg-white border border-sky-100 p-10 md:p-16 rounded-[4rem] shadow-2xl reveal">
             <h2 class="text-5xl text-center mb-4 text-sky-900 font-bold">Will You Join Us?</h2>
             
-            <!-- Auth Section -->
+            <!-- GOOGLE SIGN IN CONTAINER -->
             <div id="authSection" class="flex flex-col items-center space-y-4 my-8">
-                <p class="text-center text-stone-500 max-w-xs text-sm">Please sign in with Google to RSVP.</p>
+                <p class="text-center text-stone-500 max-w-xs text-sm">Please sign in with your Google account to RSVP.</p>
                 <div id="g_id_onload"
                      data-client_id="609636963928-h7d5ocpd1na3urpvu5podo5vgv1r27qq.apps.googleusercontent.com"
                      data-context="signin"
@@ -250,7 +250,7 @@
                 <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
             </div>
 
-            <!-- Form -->
+            <!-- RSVP FORM -->
             <form id="rsvpForm" class="hidden space-y-6">
                 <div class="text-center bg-sky-50 p-4 rounded-2xl mb-8 flex items-center justify-center space-x-2 border border-sky-100">
                     <span class="text-xs text-sky-700 font-bold uppercase">Signed in as:</span>
@@ -280,8 +280,7 @@
                 <p id="errorMsg" class="text-red-500 text-xs text-center hidden">Something went wrong. Please try again!</p>
             </form>
 
-            <!-- Success UI -->
-            <div id="successMsg" class="hidden text-center py-10">
+            <div id="successMsg" class="hidden text-center py-10 fade-in">
                 <div class="text-7xl mb-6">🍯</div>
                 <h3 class="text-4xl mb-4 text-sky-900 font-bold">Sweet!</h3>
                 <p class="text-stone-500">We've saved your response to our guest list. See you at the den!</p>
@@ -289,6 +288,7 @@
         </div>
     </section>
 
+    <!-- Footer -->
     <footer class="py-16 text-center text-stone-300 text-xs font-bold uppercase tracking-[0.3em]">
         <p>Shiloh's 1st Birthday • 2026</p>
     </footer>
@@ -296,6 +296,7 @@
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbyX5gpD3qheR6CtS8fwpGkWfOTfAmhU7ZGWkRmNWrkTOVIpNdCWzczCm8giCFKBGHGl/exec';
 
+        // Decode Google JWT
         function decodeJwtResponse(token) {
             var base64Url = token.split('.')[1];
             var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -305,6 +306,7 @@
             return JSON.parse(jsonPayload);
         }
 
+        // Handle Google Sign-In
         window.handleCredentialResponse = (response) => {
             const payload = decodeJwtResponse(response.credential);
             const userEmail = payload.email;
@@ -315,12 +317,13 @@
             document.getElementById('rsvpForm').classList.remove('hidden');
         };
 
+        // Countdown Timer Logic
         const targetDate = new Date("April 26, 2026 15:00:00").getTime();
         function updateCountdown() {
             const now = new Date().getTime();
             const diff = targetDate - now;
             if (diff <= 0) {
-                document.getElementById('countdown').innerHTML = "<div class='text-2xl font-bold col-span-4 text-sky-900'>The Party is Here!</div>";
+                document.getElementById('countdown').innerHTML = "<div class='text-2xl font-bold col-span-4 text-sky-900 uppercase tracking-widest'>The Party is Here!</div>";
                 return;
             }
             const d = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -335,40 +338,65 @@
         setInterval(updateCountdown, 1000);
         updateCountdown();
 
+        // Reveal animations
+        const observerOptions = { threshold: 0.1 };
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
-        }, { threshold: 0.1 });
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('active');
+            });
+        }, observerOptions);
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
+        // Form Submission
         const form = document.getElementById('rsvpForm');
         const submitBtn = document.getElementById('submitBtn');
         const btnText = document.getElementById('btnText');
         const btnLoader = document.getElementById('btnLoader');
+        const errorMsg = document.getElementById('errorMsg');
 
         form.addEventListener('submit', e => {
             e.preventDefault();
+            
             submitBtn.disabled = true;
             btnText.innerText = "Saving...";
             btnLoader.classList.remove('hidden');
+            errorMsg.classList.add('hidden');
 
             const formData = new FormData(form);
-            formData.set('Contact', '+63 ' + document.getElementById('contact').value);
-            formData.append('Time', new Date().toLocaleTimeString('en-PH'));
+            
+            // Format contact with prefix
+            const contactValue = document.getElementById('contact').value;
+            formData.set('Contact', '+63 ' + contactValue);
+            
+            // Capture submission time
+            const now = new Date();
+            formData.set('Time', now.toLocaleTimeString('en-PH'));
+
+            // Ensure the captured Gmail address is sent
+            const gmailVal = document.getElementById('gmailAddress').value;
+            formData.set('Gmail', gmailVal);
 
             const params = new URLSearchParams();
-            for (const pair of formData) { params.append(pair[0], pair[1]); }
+            for (const pair of formData) {
+                params.append(pair[0], pair[1]);
+            }
 
-            fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: params })
+            fetch(scriptURL, { 
+                method: 'POST', 
+                mode: 'no-cors',
+                body: params
+            })
             .then(() => {
                 document.getElementById('rsvpForm').classList.add('hidden');
                 document.getElementById('successMsg').classList.remove('hidden');
+                document.getElementById('successMsg').classList.add('active');
             })
             .catch(error => {
                 console.error('Error!', error.message);
                 submitBtn.disabled = false;
                 btnText.innerText = "Confirm Attendance";
                 btnLoader.classList.add('hidden');
-                document.getElementById('errorMsg').classList.remove('hidden');
+                errorMsg.classList.remove('hidden');
             });
         });
     </script>
