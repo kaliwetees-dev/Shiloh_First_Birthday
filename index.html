@@ -173,7 +173,6 @@
         </div>
     </section>
 
-    <!-- Moving Text Marquee -->
     <div class="marquee-container my-12 rotate-[-1deg] shadow-sm">
         <div class="marquee-content">
             SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE •
@@ -187,7 +186,7 @@
             
             <div id="verifyingSpinner" class="hidden flex flex-col items-center space-y-4 my-8">
                 <div class="loading-spinner"></div>
-                <p class="text-xs text-stone-400 uppercase tracking-[0.2em] font-bold">Verifying...</p>
+                <p class="text-xs text-stone-400 uppercase tracking-[0.2em] font-bold">Verifying Reservation...</p>
             </div>
 
             <div id="authSection" class="flex flex-col items-center space-y-4 my-8">
@@ -208,6 +207,7 @@
                     <span id="displayEmail" class="text-xs font-bold text-stone-600 italic"></span>
                 </div>
 
+                <!-- Hidden data points -->
                 <input type="hidden" id="gmailAddress" name="Gmail">
                 <input type="hidden" id="submissionTime" name="Time">
 
@@ -239,6 +239,7 @@
                 <div class="text-7xl mb-6">🐾</div>
                 <h3 class="text-4xl mb-4 text-sky-900 font-bold">Hi Again!</h3>
                 <p class="text-stone-600 mb-4 italic">You have already confirmed your reservation.</p>
+                <p class="text-stone-400 text-sm italic">We're so excited to see you!</p>
             </div>
         </div>
     </section>
@@ -258,6 +259,7 @@
         window.handleCredentialResponse = (response) => {
             const payload = decodeJwtResponse(response.credential);
             const userEmail = payload.email;
+
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('verifyingSpinner').classList.remove('hidden');
 
