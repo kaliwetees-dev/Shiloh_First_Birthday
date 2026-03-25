@@ -1,382 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shiloh is Turning One! | Birthday Invitation</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&family=Montserrat:wght@900&display=swap" rel="stylesheet">
-    <!-- Google Identity Services Library -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <style>
-        body {
-            font-family: 'Quicksand', sans-serif;
-            background-color: #f0f9ff;
-            color: #5d4037;
-            scroll-behavior: smooth;
-            overflow-x: hidden;
-        }
-        h1, h2, h3, .serif {
-            font-family: 'Playfair Display', serif;
-        }
+var sheetName = 'Sheet1';
+var scriptProp = PropertiesService.getScriptProperties();
 
-        .plaid-blue {
-            background-color: #f8fafc;
-            background-image: 
-                linear-gradient(90deg, rgba(186, 230, 253, 0.2) 50%, transparent 50%),
-                linear-gradient(rgba(186, 230, 253, 0.2) 50%, transparent 50%);
-            background-size: 60px 60px;
-        }
+function intialSetup () {
+  var activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  scriptProp.setProperty('key', activeSpreadsheet.getId());
+}
 
-        .marquee-container {
-            overflow: hidden;
-            white-space: nowrap;
-            background: #e0f2fe;
-            padding: 15px 0;
-            border-top: 1px solid #bae6fd;
-            border-bottom: 1px solid #bae6fd;
-        }
-        .marquee-content {
-            display: inline-block;
-            animation: marquee 30s linear infinite;
-            font-family: 'Montserrat', sans-serif;
-            text-transform: uppercase;
-            font-size: 1.5rem;
-            letter-spacing: 0.2em;
-            color: #7dd3fc;
-        }
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
+/**
+ * Handles checking if a guest has already RSVP'd.
+ * Returns their reserved counts if they exist.
+ */
+function doGet(e) {
+  var userEmail = e.parameter.checkEmail;
+  if (userEmail) {
+    var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
+    var sheet = doc.getSheetByName(sheetName);
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    
+    var gmailIdx = headers.indexOf('Gmail');
+    var adultsIdx = headers.indexOf('Adults');
+    var kidsIdx = headers.indexOf('Kids');
 
-        .floating {
-            animation: floating 4s ease-in-out infinite;
-        }
-        @keyframes floating {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(2deg); }
-        }
+    var foundRow = null;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][gmailIdx] == userEmail) {
+        foundRow = data[i];
+        break;
+      }
+    }
 
-        .drifter {
-            position: fixed;
-            z-index: -1;
-            opacity: 0.2;
-            pointer-events: none;
-            animation: drift 20s linear infinite;
-        }
-        @keyframes drift {
-            from { transform: translateY(100vh) rotate(0deg); }
-            to { transform: translateY(-100px) rotate(360deg); }
-        }
+    if (foundRow) {
+      return ContentService.createTextOutput(JSON.stringify({
+        exists: true,
+        adults: foundRow[adultsIdx] || 0,
+        kids: foundRow[kidsIdx] || 0
+      })).setMimeType(ContentService.MimeType.JSON);
+    } else {
+      return ContentService.createTextOutput(JSON.stringify({exists: false}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+}
 
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 1s ease-out;
-        }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
+/**
+ * Saves initial RSVP data from the website.
+ */
+function doPost (e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+  try {
+    var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
+    var sheet = doc.getSheetByName(sheetName);
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var nextRow = sheet.getLastRow() + 1;
+    var newRow = headers.map(function(header) {
+      return header === 'Timestamp' ? new Date() : e.parameter[header] || "";
+    });
+    sheet.getRange(nextRow, 1, 1, newRow.length).setValues([newRow]);
+    return ContentService.createTextOutput(JSON.stringify({ 'result': 'success' })).setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(186, 230, 253, 0.4);
-        }
+/**
+ * AUTOMATION: Sends free email notifications.
+ * Trigger this every 1 minute.
+ */
+function processConfirmations() {
+  var doc = SpreadsheetApp.openById(scriptProp.getProperty('key'));
+  var sheet = doc.getSheetByName(sheetName);
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  
+  var gmailIdx = headers.indexOf('Gmail');
+  var adultsIdx = headers.indexOf('Adults');
+  var kidsIdx = headers.indexOf('Kids');
+  var confirmIdx = headers.indexOf('Confirmation');
 
-        .loading-spinner {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top: 3px solid #075985;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body class="plaid-blue">
+  // Loop through rows (skip header)
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var guestEmail = row[gmailIdx];
+    var adults = row[adultsIdx];
+    var kids = row[kidsIdx];
+    var confirmationStatus = row[confirmIdx];
 
-    <div class="drifter text-4xl" style="left: 10%; animation-duration: 25s; animation-delay: -5s;">🧸</div>
-    <div class="drifter text-3xl" style="left: 30%; animation-duration: 18s; animation-delay: -2s;">✨</div>
-    <div class="drifter text-5xl" style="left: 70%; animation-duration: 30s; animation-delay: -10s;">🐾</div>
-    <div class="drifter text-2xl" style="left: 90%; animation-duration: 22s; animation-delay: -1s;">🎈</div>
-
-    <nav class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-lg border-b border-sky-100">
-        <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
-            <span class="text-xl font-bold tracking-widest text-sky-900 uppercase">Shiloh is One</span>
-            <div class="hidden md:flex space-x-8 text-xs font-bold uppercase tracking-widest">
-                <a href="#home" class="hover:text-sky-600 transition">Home</a>
-                <a href="#about" class="hover:text-sky-600 transition">Our Story</a>
-                <a href="#details" class="hover:text-sky-600 transition">Details</a>
-                <a href="#rsvp" class="bg-sky-800 text-white px-6 py-2 rounded-full hover:bg-sky-900 transition shadow-md">RSVP</a>
-            </div>
-        </div>
-    </nav>
-
-    <section id="home" class="min-h-screen flex flex-col items-center justify-center pt-28 px-6 text-center">
-        <div class="max-w-3xl reveal active">
-            <div class="relative w-64 h-64 md:w-80 md:h-80 mx-auto mb-8 floating">
-                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" class="w-full h-full drop-shadow-2xl">
-                    <circle cx="100" cy="120" r="65" fill="#a1887f" />
-                    <circle cx="100" cy="75" r="50" fill="#a1887f" />
-                    <circle cx="65" cy="45" r="18" fill="#a1887f" />
-                    <circle cx="135" cy="45" r="18" fill="#a1887f" />
-                    <circle cx="65" cy="45" r="8" fill="#d7ccc8" />
-                    <circle cx="135" cy="45" r="8" fill="#d7ccc8" />
-                    <circle cx="100" cy="85" r="22" fill="#d7ccc8" />
-                    <circle cx="85" cy="70" r="4" fill="#3e2723" />
-                    <circle cx="115" cy="70" r="4" fill="#3e2723" />
-                    <path d="M95 95 Q100 102 105 95" stroke="#3e2723" stroke-width="2" fill="none" />
-                    <path d="M90 110 L110 120 L110 110 L90 120 Z" fill="#60a5fa" />
-                    <circle cx="100" cy="115" r="3" fill="#3b82f6" />
-                </svg>
-                <div class="absolute -top-12 -right-12 w-32 h-32 text-8xl transform -rotate-12 hover:scale-110 transition duration-500 cursor-default">
-                    <span class="relative">🎈</span>
-                    <div class="absolute bottom-0 left-1/2 w-1 h-12 bg-stone-300 -z-10 origin-top rotate-12"></div>
-                </div>
-            </div>
-            
-            <p class="uppercase tracking-[0.4em] text-sky-800 font-black text-sm mb-4">You're cordially invited</p>
-            <h1 class="text-7xl md:text-9xl mb-2 font-bold text-stone-800 uppercase tracking-tighter">Shiloh</h1>
-            <p class="serif italic text-3xl md:text-4xl text-stone-500 mb-10">Is celebrating his beary first birthday</p>
-            
-            <div class="mb-12">
-                <div id="countdown" class="grid grid-cols-4 gap-2 md:gap-4 max-w-lg mx-auto">
-                    <div class="glass-card p-4 rounded-3xl">
-                        <span id="days" class="block text-3xl md:text-4xl font-black text-sky-900">00</span>
-                        <span class="text-[10px] uppercase font-bold tracking-widest text-stone-400">Days</span>
-                    </div>
-                    <div class="glass-card p-4 rounded-3xl">
-                        <span id="hours" class="block text-3xl md:text-4xl font-black text-sky-900">00</span>
-                        <span class="text-[10px] uppercase font-bold tracking-widest text-stone-400">Hrs</span>
-                    </div>
-                    <div class="glass-card p-4 rounded-3xl">
-                        <span id="minutes" class="block text-3xl md:text-4xl font-black text-sky-900">00</span>
-                        <span class="text-[10px] uppercase font-bold tracking-widest text-stone-400">Mins</span>
-                    </div>
-                    <div class="glass-card p-4 rounded-3xl">
-                        <span id="seconds" class="block text-3xl md:text-4xl font-black text-sky-900 text-stone-400">00</span>
-                        <span class="text-[10px] uppercase font-bold tracking-widest text-stone-400">Secs</span>
-                    </div>
-                </div>
-            </div>
-
-            <a href="#rsvp" class="inline-block bg-sky-900 text-stone-50 px-12 py-5 rounded-full text-lg font-bold hover:bg-stone-800 transition transform hover:scale-110 shadow-xl tracking-widest uppercase">
-                Count Me In
-            </a>
-        </div>
-    </section>
-
-    <div class="marquee-container my-12 rotate-[-1deg] shadow-sm">
-        <div class="marquee-content">
-            SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE •
-        </div>
-    </div>
-
-    <!-- RSVP Section -->
-    <section id="rsvp" class="py-32 px-6 flex flex-col items-center">
-        <div class="max-w-2xl w-full bg-white border border-sky-100 p-10 md:p-16 rounded-[4rem] shadow-2xl reveal">
-            <h2 class="text-5xl text-center mb-4 text-sky-900 font-bold">Will You Join Us?</h2>
-            
-            <div id="verifyingSpinner" class="hidden flex flex-col items-center space-y-4 my-8">
-                <div class="loading-spinner"></div>
-                <p class="text-xs text-stone-400 uppercase tracking-[0.2em] font-bold">Verifying Reservation...</p>
-            </div>
-
-            <div id="authSection" class="flex flex-col items-center space-y-4 my-8">
-                <p class="text-center text-stone-500 max-w-xs text-sm">Please sign in with your Google account to confirm your RSVP.</p>
-                <div id="g_id_onload"
-                     data-client_id="609636963928-h7d5ocpd1na3urpvu5podo5vgv1r27qq.apps.googleusercontent.com"
-                     data-context="signin"
-                     data-ux_mode="popup"
-                     data-callback="handleCredentialResponse"
-                     data-auto_prompt="false">
-                </div>
-                <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
-            </div>
-
-            <form id="rsvpForm" class="hidden space-y-6">
-                <div class="text-center bg-sky-50 p-4 rounded-2xl mb-8 flex items-center justify-center space-x-2 border border-sky-100">
-                    <span class="text-xs text-sky-700 font-bold uppercase">Signed in as:</span>
-                    <span id="displayEmail" class="text-xs font-bold text-stone-600 italic"></span>
-                </div>
-
-                <input type="hidden" id="gmailAddress" name="Gmail">
-                <input type="hidden" id="submissionTime" name="Time">
-
-                <div class="relative">
-                    <input type="text" id="guestName" name="Name" required class="w-full px-0 py-4 bg-transparent border-b-2 border-stone-200 focus:border-sky-800 outline-none transition-colors peer" placeholder=" ">
-                    <label class="absolute left-0 top-4 text-stone-400 pointer-events-none transition-all peer-focus:-top-4 peer-focus:text-xs peer-focus:text-sky-800 peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-xs">Full Name</label>
-                </div>
-
-                <div class="relative">
-                    <div class="flex items-end border-b-2 border-stone-200 focus-within:border-sky-800 transition-colors">
-                        <select id="countryPrefix" class="bg-transparent py-4 pr-2 outline-none text-stone-600 font-bold text-sm cursor-pointer">
-                            <option value="+63">🇵🇭 +63</option>
-                            <option value="+1">🇺🇸 +1</option>
-                        </select>
-                        <input type="tel" id="contact" name="ContactNumber" required class="w-full py-4 bg-transparent outline-none peer" placeholder=" ">
-                        <label class="absolute left-20 top-4 text-stone-400 pointer-events-none transition-all peer-focus:-top-4 peer-focus:left-0 peer-focus:text-xs peer-focus:text-sky-800 peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:left-0 peer-[:not(:placeholder-shown)]:text-xs">Contact Number</label>
-                    </div>
-                </div>
-
-                <button type="submit" id="submitBtn" class="w-full bg-sky-900 text-white py-6 rounded-2xl text-xl font-black shadow-lg hover:bg-sky-800 transition transform hover:-translate-y-1 active:scale-95 uppercase tracking-tighter flex items-center justify-center space-x-3">
-                    <span id="btnText">Confirm Attendance</span>
-                    <div id="btnLoader" class="loading-spinner !border-white/30 !border-top-white hidden"></div>
-                </button>
-            </form>
-
-            <div id="successMsg" class="hidden text-center py-10 fade-in">
-                <div class="text-7xl mb-6">🍯</div>
-                <h3 class="text-4xl mb-4 text-sky-900 font-bold">Sweet!</h3>
-                <p class="text-stone-500">We've saved your response. We'll send a confirmation text once we've processed your reservation!</p>
-            </div>
-
-            <div id="alreadyMsg" class="hidden text-center py-10 fade-in">
-                <div class="text-7xl mb-6">🐾</div>
-                <h3 class="text-4xl mb-4 text-sky-900 font-bold">Hi Again!</h3>
-                <p class="text-stone-600 mb-6 italic">You have already confirmed your reservation.</p>
-                
-                <div id="reservationDetails" class="hidden bg-white shadow-sm p-8 rounded-[2rem] border border-sky-100 mb-8 max-w-xs mx-auto">
-                    <p class="text-sky-800 font-bold text-[10px] uppercase tracking-[0.2em] mb-4">Confirmed Spot</p>
-                    <div class="flex justify-center items-center space-x-4 mb-2">
-                        <div class="text-center">
-                            <span id="reservedAdults" class="block text-3xl font-black text-sky-600">0</span>
-                            <span class="text-[9px] uppercase font-bold text-stone-400">Adults</span>
-                        </div>
-                        <div class="h-8 w-px bg-stone-100"></div>
-                        <div class="text-center">
-                            <span id="reservedKids" class="block text-3xl font-black text-sky-600">0</span>
-                            <span class="text-[9px] uppercase font-bold text-stone-400">Kids</span>
-                        </div>
-                    </div>
-                    <p class="mt-4 text-stone-400 text-[10px] italic">Thank you for confirming. See you beary soon!</p>
-                </div>
-                
-                <p class="text-stone-500 font-medium">We're so excited to see you!</p>
-            </div>
-        </div>
-    </section>
-
-    <footer class="py-16 text-center text-stone-300 text-xs font-bold uppercase tracking-[0.3em]">
-        <p>Shiloh's 1st Birthday • 2026</p>
-    </footer>
-
-    <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbwidjY74uo9SyE6fgzGRZ1YZ7kevpNXK9qyxf_BycT3PMCklBOM2u8jsXaJ9WnP-f-n/exec';
-
-        function decodeJwtResponse(token) {
-            var base64Url = token.split('.')[1];
-            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
-        }
-
-        window.handleCredentialResponse = (response) => {
-            const payload = decodeJwtResponse(response.credential);
-            const userEmail = payload.email;
-
-            document.getElementById('authSection').classList.add('hidden');
-            document.getElementById('verifyingSpinner').classList.remove('hidden');
-
-            setTimeout(() => {
-                fetch(`${scriptURL}?checkEmail=${userEmail}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        document.getElementById('verifyingSpinner').classList.add('hidden');
-                        if (data && data.exists) {
-                            document.getElementById('alreadyMsg').classList.remove('hidden');
-                            if (data.adults !== undefined && data.kids !== undefined) {
-                                document.getElementById('reservedAdults').innerText = data.adults || 0;
-                                document.getElementById('reservedKids').innerText = data.kids || 0;
-                                document.getElementById('reservationDetails').classList.remove('hidden');
-                            }
-                        } else {
-                            document.getElementById('displayEmail').innerText = userEmail;
-                            document.getElementById('gmailAddress').value = userEmail;
-                            document.getElementById('rsvpForm').classList.remove('hidden');
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Verify error:', err);
-                        document.getElementById('verifyingSpinner').classList.add('hidden');
-                        document.getElementById('displayEmail').innerText = userEmail;
-                        document.getElementById('gmailAddress').value = userEmail;
-                        document.getElementById('rsvpForm').classList.remove('hidden');
-                    });
-            }, 500);
-        };
-
-        const targetDate = new Date("April 26, 2026 15:00:00").getTime();
-        function updateCountdown() {
-            const now = new Date().getTime();
-            const diff = targetDate - now;
-            if (diff <= 0) return;
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((diff % (1000 * 60)) / 1000);
-            document.getElementById('days').innerText = d.toString().padStart(2, '0');
-            document.getElementById('hours').innerText = h.toString().padStart(2, '0');
-            document.getElementById('minutes').innerText = m.toString().padStart(2, '0');
-            document.getElementById('seconds').innerText = s.toString().padStart(2, '0');
-        }
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-        const form = document.getElementById('rsvpForm');
-        form.addEventListener('submit', e => {
-            e.preventDefault();
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('btnLoader').classList.remove('hidden');
-
-            const formData = new FormData(form);
-            
-            // Combine Prefix and Number
-            const prefix = document.getElementById('countryPrefix').value;
-            const rawNumber = document.getElementById('contact').value;
-            // Remove spaces/dashes from user input
-            const cleanNumber = rawNumber.replace(/\D/g, ''); 
-            const fullContact = prefix + cleanNumber;
-
-            const params = new URLSearchParams();
-            // Map the custom combination to the 'Contact' header in the sheet
-            params.append('Name', formData.get('Name'));
-            params.append('Contact', fullContact);
-            params.append('Gmail', formData.get('Gmail'));
-            params.append('Time', new Date().toLocaleTimeString('en-PH'));
-
-            fetch(scriptURL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                body: params,
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            })
-            .then(() => {
-                document.getElementById('rsvpForm').classList.add('hidden');
-                document.getElementById('successMsg').classList.remove('hidden');
-            })
-            .catch(err => {
-                console.error("Submit Error:", err);
-                document.getElementById('submitBtn').disabled = false;
-                document.getElementById('btnLoader').classList.add('hidden');
-            });
-        });
-    </script>
-</body>
-</html>
+    // CONDITION: Adults AND Kids are filled, but Confirmation is still blank
+    if (adults !== "" && kids !== "" && confirmationStatus.toString().trim() === "") {
+      
+      var subject = "RSVP Confirmed: Shiloh's 1st Birthday!";
+      var message = "Hi! \n\nThank you for confirming your attendance. We have reserved " + 
+                    adults + " adult(s) and " + kids + " kid(s) for you. \n\n" +
+                    "We are so excited to see you beary soon at Shiloh's 1st Birthday! \n\n" +
+                    "Location: Malana's Residence, Sta. Cruz, Dapitan City \n" + 
+                    "Time: 3:00 PM - 6:00 PM";
+      
+      try {
+        // Send the free email
+        MailApp.sendEmail(guestEmail, subject, message);
+        
+        // Mark as "Yes" in the spreadsheet so it doesn't send again
+        sheet.getRange(i + 1, confirmIdx + 1).setValue("Yes");
+      } catch (err) {
+        Logger.log("Email failed for: " + guestEmail + " Error: " + err);
+      }
+    }
+  }
+}
