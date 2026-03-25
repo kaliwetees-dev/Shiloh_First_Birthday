@@ -234,21 +234,39 @@
                 <p class="text-stone-500">We've saved your response. We'll send a confirmation text once we've processed your reservation!</p>
             </div>
 
+            <!-- Personalized Already Registered UI -->
             <div id="alreadyMsg" class="hidden text-center py-10 fade-in">
                 <div class="text-7xl mb-6">🐾</div>
                 <h3 class="text-4xl mb-4 text-sky-900 font-bold">Hi Again!</h3>
-                <p class="text-stone-600 mb-4 italic">You have already confirmed your reservation.</p>
-                <div id="reservationDetails" class="bg-sky-50 p-6 rounded-3xl border border-sky-100 mb-6 hidden">
-                    <p class="text-sky-800 font-bold text-sm uppercase tracking-widest mb-2">Current Reservation</p>
-                    <p class="text-stone-600">We have reserved <span id="reservedAdults" class="font-bold text-sky-700">0</span> adults and <span id="reservedKids" class="font-bold text-sky-700">0</span> kids for you.</p>
+                <p class="text-stone-600 mb-6 italic">You have already confirmed your reservation.</p>
+                
+                <div id="reservationDetails" class="hidden bg-white shadow-sm p-8 rounded-[2rem] border border-sky-100 mb-8 max-w-xs mx-auto">
+                    <p class="text-sky-800 font-bold text-[10px] uppercase tracking-[0.2em] mb-4">Confirmed Spot</p>
+                    <div class="flex justify-center items-center space-x-4 mb-2">
+                        <div class="text-center">
+                            <span id="reservedAdults" class="block text-3xl font-black text-sky-600">0</span>
+                            <span class="text-[9px] uppercase font-bold text-stone-400">Adults</span>
+                        </div>
+                        <div class="h-8 w-px bg-stone-100"></div>
+                        <div class="text-center">
+                            <span id="reservedKids" class="block text-3xl font-black text-sky-600">0</span>
+                            <span class="text-[9px] uppercase font-bold text-stone-400">Kids</span>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-stone-400 text-[10px] italic">Thank you for confirming. See you beary soon!</p>
                 </div>
-                <p class="text-stone-400 text-sm italic">We're so excited to see you!</p>
+                
+                <p class="text-stone-500 font-medium">We're so excited to see you!</p>
             </div>
         </div>
     </section>
 
+    <footer class="py-16 text-center text-stone-300 text-xs font-bold uppercase tracking-[0.3em]">
+        <p>Shiloh's 1st Birthday • 2026</p>
+    </footer>
+
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbzexFvjvvA2zPzPAdH1zgU4AaBzGQu0NLOSo-FttYd6ogYqzjbdxGouf3GoJ8iUU0NS/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbw2eGNEkofcaAwUhb-s_ho9mvIykwzPUKwQ1x45TW2nKOPFJek87kGlcr3GtBt_WaiY/exec';
 
         function decodeJwtResponse(token) {
             var base64Url = token.split('.')[1];
@@ -274,7 +292,6 @@
                         if (data && data.exists) {
                             document.getElementById('alreadyMsg').classList.remove('hidden');
                             
-                            // Check if Adults/Kids data was returned by the script
                             if (data.adults !== undefined && data.kids !== undefined) {
                                 document.getElementById('reservedAdults').innerText = data.adults || 0;
                                 document.getElementById('reservedKids').innerText = data.kids || 0;
