@@ -207,7 +207,6 @@
                     <span id="displayEmail" class="text-xs font-bold text-stone-600 italic"></span>
                 </div>
 
-                <!-- Hidden data points -->
                 <input type="hidden" id="gmailAddress" name="Gmail">
                 <input type="hidden" id="submissionTime" name="Time">
 
@@ -245,7 +244,7 @@
     </section>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbZ4CowWwzz46JW2u7FGr0HMu_SEmfNOvg81tolcg-dgl8hz3iCALy9rDRsVBJHDhUU/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbzexFvjvvA2zPzPAdH1zgU4AaBzGQu0NLOSo-FttYd6ogYqzjbdxGouf3GoJ8iUU0NS/exec';
 
         function decodeJwtResponse(token) {
             var base64Url = token.split('.')[1];
@@ -263,25 +262,28 @@
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('verifyingSpinner').classList.remove('hidden');
 
-            fetch(`${scriptURL}?checkEmail=${userEmail}`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById('verifyingSpinner').classList.add('hidden');
-                    if (data.exists) {
-                        document.getElementById('alreadyMsg').classList.remove('hidden');
-                    } else {
+            // Add a small delay to avoid race conditions with standard GAS execution
+            setTimeout(() => {
+                fetch(`${scriptURL}?checkEmail=${userEmail}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('verifyingSpinner').classList.add('hidden');
+                        if (data && data.exists) {
+                            document.getElementById('alreadyMsg').classList.remove('hidden');
+                        } else {
+                            document.getElementById('displayEmail').innerText = userEmail;
+                            document.getElementById('gmailAddress').value = userEmail;
+                            document.getElementById('rsvpForm').classList.remove('hidden');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Verify error:', err);
+                        document.getElementById('verifyingSpinner').classList.add('hidden');
                         document.getElementById('displayEmail').innerText = userEmail;
                         document.getElementById('gmailAddress').value = userEmail;
                         document.getElementById('rsvpForm').classList.remove('hidden');
-                    }
-                })
-                .catch(err => {
-                    console.error('Verify error:', err);
-                    document.getElementById('verifyingSpinner').classList.add('hidden');
-                    document.getElementById('displayEmail').innerText = userEmail;
-                    document.getElementById('gmailAddress').value = userEmail;
-                    document.getElementById('rsvpForm').classList.remove('hidden');
-                });
+                    });
+            }, 500);
         };
 
         const targetDate = new Date("April 26, 2026 15:00:00").getTime();
@@ -318,10 +320,22 @@
             const params = new URLSearchParams();
             for (const pair of formData) { params.append(pair[0], pair[1]); }
 
-            fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: params })
+            fetch(scriptURL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: params,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
             .then(() => {
                 document.getElementById('rsvpForm').classList.add('hidden');
                 document.getElementById('successMsg').classList.remove('hidden');
+            })
+            .catch(err => {
+                console.error("Submit Error:", err);
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('btnLoader').classList.add('hidden');
             });
         });
     </script>
