@@ -161,7 +161,7 @@
                         <span class="text-[10px] uppercase font-bold tracking-widest text-stone-400">Mins</span>
                     </div>
                     <div class="glass-card p-4 rounded-3xl">
-                        <span id="seconds" class="block text-3xl md:text-4xl font-black text-sky-900 text-sky-500">00</span>
+                        <span id="seconds" class="block text-3xl md:text-4xl font-black text-sky-900 text-stone-400">00</span>
                         <span class="text-[10px] uppercase font-bold tracking-widest text-stone-400">Secs</span>
                     </div>
                 </div>
@@ -216,9 +216,13 @@
                 </div>
 
                 <div class="relative">
-                    <div class="flex items-center border-b-2 border-stone-200 focus-within:border-sky-800 transition-colors">
-                        <input type="tel" id="contact" name="Contact" required class="w-full py-4 bg-transparent outline-none peer" placeholder=" ">
-                        <label class="absolute left-0 top-4 text-stone-400 pointer-events-none transition-all peer-focus:-top-4 peer-focus:text-xs peer-focus:text-sky-800 peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-xs">Contact Number</label>
+                    <div class="flex items-end border-b-2 border-stone-200 focus-within:border-sky-800 transition-colors">
+                        <select id="countryPrefix" class="bg-transparent py-4 pr-2 outline-none text-stone-600 font-bold text-sm cursor-pointer">
+                            <option value="+63">🇵🇭 +63</option>
+                            <option value="+1">🇺🇸 +1</option>
+                        </select>
+                        <input type="tel" id="contact" name="ContactNumber" required class="w-full py-4 bg-transparent outline-none peer" placeholder=" ">
+                        <label class="absolute left-20 top-4 text-stone-400 pointer-events-none transition-all peer-focus:-top-4 peer-focus:left-0 peer-focus:text-xs peer-focus:text-sky-800 peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:left-0 peer-[:not(:placeholder-shown)]:text-xs">Contact Number</label>
                     </div>
                 </div>
 
@@ -234,7 +238,6 @@
                 <p class="text-stone-500">We've saved your response. We'll send a confirmation text once we've processed your reservation!</p>
             </div>
 
-            <!-- Personalized Already Registered UI -->
             <div id="alreadyMsg" class="hidden text-center py-10 fade-in">
                 <div class="text-7xl mb-6">🐾</div>
                 <h3 class="text-4xl mb-4 text-sky-900 font-bold">Hi Again!</h3>
@@ -266,7 +269,7 @@
     </footer>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbw2eGNEkofcaAwUhb-s_ho9mvIykwzPUKwQ1x45TW2nKOPFJek87kGlcr3GtBt_WaiY/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwidjY74uo9SyE6fgzGRZ1YZ7kevpNXK9qyxf_BycT3PMCklBOM2u8jsXaJ9WnP-f-n/exec';
 
         function decodeJwtResponse(token) {
             var base64Url = token.split('.')[1];
@@ -291,7 +294,6 @@
                         document.getElementById('verifyingSpinner').classList.add('hidden');
                         if (data && data.exists) {
                             document.getElementById('alreadyMsg').classList.remove('hidden');
-                            
                             if (data.adults !== undefined && data.kids !== undefined) {
                                 document.getElementById('reservedAdults').innerText = data.adults || 0;
                                 document.getElementById('reservedKids').innerText = data.kids || 0;
@@ -342,10 +344,20 @@
             document.getElementById('btnLoader').classList.remove('hidden');
 
             const formData = new FormData(form);
-            formData.set('Time', new Date().toLocaleTimeString('en-PH'));
+            
+            // Combine Prefix and Number
+            const prefix = document.getElementById('countryPrefix').value;
+            const rawNumber = document.getElementById('contact').value;
+            // Remove spaces/dashes from user input
+            const cleanNumber = rawNumber.replace(/\D/g, ''); 
+            const fullContact = prefix + cleanNumber;
 
             const params = new URLSearchParams();
-            for (const pair of formData) { params.append(pair[0], pair[1]); }
+            // Map the custom combination to the 'Contact' header in the sheet
+            params.append('Name', formData.get('Name'));
+            params.append('Contact', fullContact);
+            params.append('Gmail', formData.get('Gmail'));
+            params.append('Time', new Date().toLocaleTimeString('en-PH'));
 
             fetch(scriptURL, { 
                 method: 'POST', 
