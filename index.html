@@ -85,7 +85,7 @@
             transform: translateY(0);
         }
 
-        /* Countdown Glassmorphism */
+        /* Glassmorphism */
         .glass-card {
             background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(8px);
@@ -95,9 +95,9 @@
         .loading-spinner {
             border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
-            border-top: 3px solid #fff;
-            width: 20px;
-            height: 20px;
+            border-top: 3px solid #075985;
+            width: 24px;
+            height: 24px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin {
@@ -237,9 +237,15 @@
         <div class="max-w-2xl w-full bg-white border border-sky-100 p-10 md:p-16 rounded-[4rem] shadow-2xl reveal">
             <h2 class="text-5xl text-center mb-4 text-sky-900 font-bold">Will You Join Us?</h2>
             
-            <!-- GOOGLE SIGN IN CONTAINER -->
+            <!-- VERIFYING STATE -->
+            <div id="verifyingSpinner" class="hidden flex flex-col items-center space-y-4 my-8">
+                <div class="loading-spinner"></div>
+                <p class="text-xs text-stone-400 uppercase tracking-[0.2em] font-bold">Verifying Reservation...</p>
+            </div>
+
+            <!-- Auth Section -->
             <div id="authSection" class="flex flex-col items-center space-y-4 my-8">
-                <p class="text-center text-stone-500 max-w-xs text-sm">Please sign in with your Google account to RSVP.</p>
+                <p class="text-center text-stone-500 max-w-xs text-sm">Please sign in with your Google account to confirm your RSVP.</p>
                 <div id="g_id_onload"
                      data-client_id="609636963928-h7d5ocpd1na3urpvu5podo5vgv1r27qq.apps.googleusercontent.com"
                      data-context="signin"
@@ -253,7 +259,7 @@
             <!-- RSVP FORM -->
             <form id="rsvpForm" class="hidden space-y-6">
                 <div class="text-center bg-sky-50 p-4 rounded-2xl mb-8 flex items-center justify-center space-x-2 border border-sky-100">
-                    <span class="text-xs text-sky-700 font-bold uppercase">Signed in as:</span>
+                    <span class="text-xs text-sky-700 font-bold uppercase">Logged in as:</span>
                     <span id="displayEmail" class="text-xs font-bold text-stone-600 italic"></span>
                 </div>
 
@@ -275,15 +281,24 @@
 
                 <button type="submit" id="submitBtn" class="w-full bg-sky-900 text-white py-6 rounded-2xl text-xl font-black shadow-lg hover:bg-sky-800 transition transform hover:-translate-y-1 active:scale-95 uppercase tracking-tighter flex items-center justify-center space-x-3">
                     <span id="btnText">Confirm Attendance</span>
-                    <div id="btnLoader" class="loading-spinner hidden"></div>
+                    <div id="btnLoader" class="loading-spinner !border-white/30 !border-top-white hidden"></div>
                 </button>
                 <p id="errorMsg" class="text-red-500 text-xs text-center hidden">Something went wrong. Please try again!</p>
             </form>
 
+            <!-- Success UI -->
             <div id="successMsg" class="hidden text-center py-10 fade-in">
                 <div class="text-7xl mb-6">🍯</div>
                 <h3 class="text-4xl mb-4 text-sky-900 font-bold">Sweet!</h3>
                 <p class="text-stone-500">We've saved your response to our guest list. See you at the den!</p>
+            </div>
+
+            <!-- Already Registered UI -->
+            <div id="alreadyMsg" class="hidden text-center py-10 fade-in">
+                <div class="text-7xl mb-6">🐾</div>
+                <h3 class="text-4xl mb-4 text-sky-900 font-bold">Hi Again!</h3>
+                <p class="text-stone-600 mb-4 italic">You have already confirmed your reservation.</p>
+                <p class="text-stone-400 text-sm">We can't wait to see you there!</p>
             </div>
         </div>
     </section>
@@ -294,7 +309,7 @@
     </footer>
 
     <script>
-        const scriptURL = 'https://script.google.com/macros/s/AKfycbyX5gpD3qheR6CtS8fwpGkWfOTfAmhU7ZGWkRmNWrkTOVIpNdCWzczCm8giCFKBGHGl/exec';
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwqwTsejRn5qjCKTi1qFBSti5ILtco28TOr9N-qUGrp6EgTgsy2TVRTpbn8yxQ_l7eA/exec';
 
         // Decode Google JWT
         function decodeJwtResponse(token) {
@@ -306,24 +321,45 @@
             return JSON.parse(jsonPayload);
         }
 
-        // Handle Google Sign-In
+        // Google Authentication Response
         window.handleCredentialResponse = (response) => {
             const payload = decodeJwtResponse(response.credential);
             const userEmail = payload.email;
 
+            // Transition UI to Verifying
             document.getElementById('authSection').classList.add('hidden');
-            document.getElementById('displayEmail').innerText = userEmail;
-            document.getElementById('gmailAddress').value = userEmail;
-            document.getElementById('rsvpForm').classList.remove('hidden');
+            document.getElementById('verifyingSpinner').classList.remove('hidden');
+
+            // Check if Email exists in Spreadsheet
+            fetch(`${scriptURL}?checkEmail=${userEmail}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('verifyingSpinner').classList.add('hidden');
+                    if (data.exists) {
+                        document.getElementById('alreadyMsg').classList.remove('hidden');
+                    } else {
+                        document.getElementById('displayEmail').innerText = userEmail;
+                        document.getElementById('gmailAddress').value = userEmail;
+                        document.getElementById('rsvpForm').classList.remove('hidden');
+                    }
+                })
+                .catch(err => {
+                    console.error('Check Error:', err);
+                    // Default to showing form if check fails so guest isn't blocked
+                    document.getElementById('verifyingSpinner').classList.add('hidden');
+                    document.getElementById('displayEmail').innerText = userEmail;
+                    document.getElementById('gmailAddress').value = userEmail;
+                    document.getElementById('rsvpForm').classList.remove('hidden');
+                });
         };
 
-        // Countdown Timer Logic
+        // Countdown Logic
         const targetDate = new Date("April 26, 2026 15:00:00").getTime();
         function updateCountdown() {
             const now = new Date().getTime();
             const diff = targetDate - now;
             if (diff <= 0) {
-                document.getElementById('countdown').innerHTML = "<div class='text-2xl font-bold col-span-4 text-sky-900 uppercase tracking-widest'>The Party is Here!</div>";
+                document.getElementById('countdown').innerHTML = "<div class='text-2xl font-bold col-span-4 text-sky-900'>The Party is Here!</div>";
                 return;
             }
             const d = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -338,65 +374,42 @@
         setInterval(updateCountdown, 1000);
         updateCountdown();
 
-        // Reveal animations
-        const observerOptions = { threshold: 0.1 };
+        // Scroll Observer
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) entry.target.classList.add('active');
-            });
-        }, observerOptions);
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
+        }, { threshold: 0.1 });
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-        // Form Submission
+        // Submission
         const form = document.getElementById('rsvpForm');
         const submitBtn = document.getElementById('submitBtn');
         const btnText = document.getElementById('btnText');
         const btnLoader = document.getElementById('btnLoader');
-        const errorMsg = document.getElementById('errorMsg');
 
         form.addEventListener('submit', e => {
             e.preventDefault();
-            
             submitBtn.disabled = true;
             btnText.innerText = "Saving...";
             btnLoader.classList.remove('hidden');
-            errorMsg.classList.add('hidden');
 
             const formData = new FormData(form);
-            
-            // Format contact with prefix
-            const contactValue = document.getElementById('contact').value;
-            formData.set('Contact', '+63 ' + contactValue);
-            
-            // Capture submission time
-            const now = new Date();
-            formData.set('Time', now.toLocaleTimeString('en-PH'));
-
-            // Ensure the captured Gmail address is sent
-            const gmailVal = document.getElementById('gmailAddress').value;
-            formData.set('Gmail', gmailVal);
+            formData.set('Contact', '+63 ' + document.getElementById('contact').value);
+            formData.set('Time', new Date().toLocaleTimeString('en-PH'));
 
             const params = new URLSearchParams();
-            for (const pair of formData) {
-                params.append(pair[0], pair[1]);
-            }
+            for (const pair of formData) { params.append(pair[0], pair[1]); }
 
-            fetch(scriptURL, { 
-                method: 'POST', 
-                mode: 'no-cors',
-                body: params
-            })
+            fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: params })
             .then(() => {
                 document.getElementById('rsvpForm').classList.add('hidden');
                 document.getElementById('successMsg').classList.remove('hidden');
-                document.getElementById('successMsg').classList.add('active');
             })
             .catch(error => {
-                console.error('Error!', error.message);
+                console.error('Submit Error!', error.message);
                 submitBtn.disabled = false;
                 btnText.innerText = "Confirm Attendance";
                 btnLoader.classList.add('hidden');
-                errorMsg.classList.remove('hidden');
+                document.getElementById('errorMsg').classList.remove('hidden');
             });
         });
     </script>
