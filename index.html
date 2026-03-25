@@ -238,6 +238,10 @@
                 <div class="text-7xl mb-6">🐾</div>
                 <h3 class="text-4xl mb-4 text-sky-900 font-bold">Hi Again!</h3>
                 <p class="text-stone-600 mb-4 italic">You have already confirmed your reservation.</p>
+                <div id="reservationDetails" class="bg-sky-50 p-6 rounded-3xl border border-sky-100 mb-6 hidden">
+                    <p class="text-sky-800 font-bold text-sm uppercase tracking-widest mb-2">Current Reservation</p>
+                    <p class="text-stone-600">We have reserved <span id="reservedAdults" class="font-bold text-sky-700">0</span> adults and <span id="reservedKids" class="font-bold text-sky-700">0</span> kids for you.</p>
+                </div>
                 <p class="text-stone-400 text-sm italic">We're so excited to see you!</p>
             </div>
         </div>
@@ -262,7 +266,6 @@
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('verifyingSpinner').classList.remove('hidden');
 
-            // Add a small delay to avoid race conditions with standard GAS execution
             setTimeout(() => {
                 fetch(`${scriptURL}?checkEmail=${userEmail}`)
                     .then(res => res.json())
@@ -270,6 +273,13 @@
                         document.getElementById('verifyingSpinner').classList.add('hidden');
                         if (data && data.exists) {
                             document.getElementById('alreadyMsg').classList.remove('hidden');
+                            
+                            // Check if Adults/Kids data was returned by the script
+                            if (data.adults !== undefined && data.kids !== undefined) {
+                                document.getElementById('reservedAdults').innerText = data.adults || 0;
+                                document.getElementById('reservedKids').innerText = data.kids || 0;
+                                document.getElementById('reservationDetails').classList.remove('hidden');
+                            }
                         } else {
                             document.getElementById('displayEmail').innerText = userEmail;
                             document.getElementById('gmailAddress').value = userEmail;
