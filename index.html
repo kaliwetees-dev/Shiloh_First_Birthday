@@ -86,20 +86,7 @@
             border: 1px solid rgba(186, 230, 253, 0.4);
         }
 
-        .loading-spinner {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top: 3px solid #075985;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* In-App Browser Notice Styles */
+        /* In-App Browser Notice Overlay */
         #browser-notice {
             display: none;
             position: fixed;
@@ -112,6 +99,19 @@
             justify-content: center;
             align-items: center;
         }
+
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #075985;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="plaid-blue">
@@ -121,8 +121,8 @@
         <div class="max-w-xs glass-card p-10 rounded-[3rem] shadow-2xl border-2 border-sky-200">
             <div class="text-6xl mb-6">🌐</div>
             <h2 class="text-2xl font-bold text-sky-900 mb-4 uppercase tracking-tighter">Open in Browser</h2>
-            <p class="text-stone-600 mb-8 text-sm leading-relaxed">Messenger limits Google Sign-in for security. To RSVP, please tap the <b>three dots (⋮)</b> or <b>(⋯)</b> at the top right and select <b>"Open in Browser"</b> or <b>"Open in Chrome/Safari"</b>.</p>
-            <div class="animate-bounce text-sky-400 text-3xl">↑</div>
+            <p class="text-stone-600 mb-8 text-sm leading-relaxed">Messenger limits Google Sign-in for security. To RSVP, please tap the <b>three dots (⋮)</b> or <b>(⋯)</b> at the top right and select <b>"Open in Browser"</b>.</p>
+            <div class="animate-bounce text-sky-400 text-3xl font-bold">↑</div>
         </div>
     </div>
 
@@ -143,6 +143,7 @@
         </div>
     </nav>
 
+    <!-- Home Section -->
     <section id="home" class="min-h-screen flex flex-col items-center justify-center pt-28 px-6 text-center">
         <div class="max-w-3xl reveal active">
             <div class="relative w-64 h-64 md:w-80 md:h-80 mx-auto mb-8 floating">
@@ -197,11 +198,63 @@
         </div>
     </section>
 
+    <!-- Our Story Section -->
+    <section id="about" class="py-32 px-6">
+        <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center gap-12 reveal">
+            <div class="w-full md:w-1/2 glass-card p-8 rounded-[3rem] shadow-xl relative overflow-hidden">
+                <div class="absolute -top-4 -left-4 text-6xl opacity-20">🧸</div>
+                <h2 class="text-5xl font-bold text-sky-900 mb-6">Our Little Cub's Story</h2>
+                <p class="text-stone-600 leading-relaxed mb-6">
+                    One year ago, our lives changed forever when we welcomed Shiloh into our hearts. From his first "beary" sweet smile to his wobbly first steps, every moment has been an adventure.
+                </p>
+                <p class="text-stone-600 leading-relaxed">
+                    Now, our little wild one is turning 1! We've had a year full of cuddles, laughter, and so much love. We can't wait to celebrate this special milestone with the people who mean the most to us.
+                </p>
+            </div>
+            <div class="w-full md:w-1/2 grid grid-cols-2 gap-4">
+                <div class="h-48 bg-sky-200 rounded-[2rem] flex items-center justify-center text-4xl">🍯</div>
+                <div class="h-48 bg-stone-200 rounded-[2rem] flex items-center justify-center text-4xl">🐾</div>
+                <div class="h-48 bg-stone-200 rounded-[2rem] flex items-center justify-center text-4xl">🎈</div>
+                <div class="h-48 bg-sky-200 rounded-[2rem] flex items-center justify-center text-4xl">✨</div>
+            </div>
+        </div>
+    </section>
+
     <div class="marquee-container my-12 rotate-[-1deg] shadow-sm">
         <div class="marquee-content">
             SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE • SHILOH IS ONE • WILD ONE •
         </div>
     </div>
+
+    <!-- Event Details Section -->
+    <section id="details" class="py-32 px-6 bg-white/30">
+        <div class="max-w-5xl mx-auto reveal">
+            <h2 class="text-6xl text-center font-bold text-sky-900 mb-16">The Party Details</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- When -->
+                <div class="glass-card p-10 rounded-[3rem] text-center shadow-lg hover:scale-105 transition duration-500">
+                    <div class="text-5xl mb-6">📅</div>
+                    <h3 class="text-2xl font-bold text-stone-800 mb-2 uppercase tracking-widest">When</h3>
+                    <p class="text-sky-800 font-bold text-xl">April 26, 2026</p>
+                    <p class="text-stone-500">Sunday @ 3:00 PM</p>
+                </div>
+                <!-- Where -->
+                <div class="glass-card p-10 rounded-[3rem] text-center shadow-lg hover:scale-105 transition duration-500 border-2 border-sky-100">
+                    <div class="text-5xl mb-6">📍</div>
+                    <h3 class="text-2xl font-bold text-stone-800 mb-2 uppercase tracking-widest">Where</h3>
+                    <p class="text-sky-800 font-bold text-xl">Malana's Residence</p>
+                    <p class="text-stone-500">Sta. Cruz, Dapitan City</p>
+                </div>
+                <!-- Theme -->
+                <div class="glass-card p-10 rounded-[3rem] text-center shadow-lg hover:scale-105 transition duration-500">
+                    <div class="text-5xl mb-6">🎩</div>
+                    <h3 class="text-2xl font-bold text-stone-800 mb-2 uppercase tracking-widest">Theme</h3>
+                    <p class="text-sky-800 font-bold text-xl">Teddy Bear Picnic</p>
+                    <p class="text-stone-500">Dress: Comfy & Cute</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- RSVP Section -->
     <section id="rsvp" class="py-32 px-6 flex flex-col items-center">
@@ -210,7 +263,7 @@
             
             <div id="verifyingSpinner" class="hidden flex flex-col items-center space-y-4 my-8">
                 <div class="loading-spinner"></div>
-                <p class="text-xs text-stone-400 uppercase tracking-[0.2em] font-bold">Verifying Reservation...</p>
+                <p class="text-xs text-stone-400 uppercase tracking-[0.2em] font-bold">Verifying RSVP...</p>
             </div>
 
             <div id="authSection" class="flex flex-col items-center space-y-4 my-8">
@@ -226,22 +279,17 @@
             </div>
 
             <form id="rsvpForm" class="hidden space-y-6">
-                <div class="text-center bg-sky-50 p-4 rounded-2xl mb-8 flex items-center justify-center space-x-2 border border-sky-100">
-                    <span class="text-xs text-sky-700 font-bold uppercase">Signed in as:</span>
+                <div class="text-center bg-sky-50 p-4 rounded-2xl mb-8 border border-sky-100">
                     <span id="displayEmail" class="text-xs font-bold text-stone-600 italic"></span>
                 </div>
-
                 <input type="hidden" id="gmailAddress" name="Gmail">
-                <input type="hidden" id="submissionTime" name="Time">
-
                 <div class="relative">
                     <input type="text" id="guestName" name="Name" required class="w-full px-0 py-4 bg-transparent border-b-2 border-stone-200 focus:border-sky-800 outline-none transition-colors peer" placeholder=" ">
                     <label class="absolute left-0 top-4 text-stone-400 pointer-events-none transition-all peer-focus:-top-4 peer-focus:text-xs peer-focus:text-sky-800 peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-xs">Full Name</label>
                 </div>
-
                 <div class="relative">
                     <div class="flex items-end border-b-2 border-stone-200 focus-within:border-sky-800 transition-colors">
-                        <select id="countryPrefix" class="bg-transparent py-4 pr-2 outline-none text-stone-600 font-bold text-sm cursor-pointer">
+                        <select id="countryPrefix" class="bg-transparent py-4 pr-2 outline-none text-stone-600 font-bold text-sm">
                             <option value="+63">🇵🇭 +63</option>
                             <option value="+1">🇺🇸 +1</option>
                         </select>
@@ -249,25 +297,19 @@
                         <label class="absolute left-20 top-4 text-stone-400 pointer-events-none transition-all peer-focus:-top-4 peer-focus:left-0 peer-focus:text-xs peer-focus:text-sky-800 peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:left-0 peer-[:not(:placeholder-shown)]:text-xs">Contact Number</label>
                     </div>
                 </div>
-
-                <button type="submit" id="submitBtn" class="w-full bg-sky-900 text-white py-6 rounded-2xl text-xl font-black shadow-lg hover:bg-sky-800 transition transform hover:-translate-y-1 active:scale-95 uppercase tracking-tighter flex items-center justify-center space-x-3">
-                    <span id="btnText">Confirm Attendance</span>
-                    <div id="btnLoader" class="loading-spinner !border-white/30 !border-top-white hidden"></div>
-                </button>
+                <button type="submit" id="submitBtn" class="w-full bg-sky-900 text-white py-6 rounded-2xl text-xl font-black shadow-lg hover:bg-sky-800 transition transform hover:-translate-y-1 active:scale-95 uppercase tracking-tighter">Confirm Attendance</button>
             </form>
 
-            <div id="successMsg" class="hidden text-center py-10 fade-in">
+            <div id="successMsg" class="hidden text-center py-10">
                 <div class="text-7xl mb-6">🍯</div>
                 <h3 class="text-4xl mb-4 text-sky-900 font-bold">Sweet!</h3>
                 <p class="text-stone-500">We've saved your response. A confirmation email will also be sent to you once we've processed your reservation!</p>
             </div>
 
-            <!-- Personalized Already Registered UI -->
             <div id="alreadyMsg" class="hidden text-center py-10 fade-in">
                 <div class="text-7xl mb-6">🐾</div>
                 <h3 class="text-4xl mb-4 text-sky-900 font-bold">Hi Again!</h3>
                 <p class="text-stone-600 mb-6 italic">You have already confirmed your reservation.</p>
-                
                 <div id="reservationDetails" class="hidden bg-white shadow-sm p-8 rounded-[2rem] border border-sky-100 mb-8 max-w-xs mx-auto">
                     <p class="text-sky-800 font-bold text-[10px] uppercase tracking-[0.2em] mb-4">Confirmed Spot</p>
                     <div class="flex justify-center items-center space-x-4 mb-2">
@@ -281,9 +323,7 @@
                             <span class="text-[9px] uppercase font-bold text-stone-400">Kids</span>
                         </div>
                     </div>
-                    <p class="mt-4 text-stone-400 text-[10px] italic">Thank you for confirming. See you beary soon!</p>
                 </div>
-                
                 <p class="text-stone-500 font-medium">We're so excited to see you!</p>
             </div>
         </div>
@@ -296,18 +336,15 @@
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycby54Xf4smXnXekKm1YNArdbc6i9rcL5bocWrVJr7CBKW2fNCtPo3z_PxlJzIFz-dHBN/exec';
 
-        // Check if the user is inside Messenger/Facebook In-App Browser
+        // DETECT IN-APP BROWSERS (Messenger, Facebook, etc.)
         function detectInApp() {
             const ua = navigator.userAgent || navigator.vendor || window.opera;
             const isInApp = (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Messenger") > -1);
-            
             if (isInApp) {
                 document.getElementById('browser-notice').style.display = 'flex';
-                // Stop scrolling on the main page while notice is up
                 document.body.style.overflow = 'hidden';
             }
         }
-
         detectInApp();
 
         function decodeJwtResponse(token) {
@@ -322,51 +359,61 @@
         window.handleCredentialResponse = (response) => {
             const payload = decodeJwtResponse(response.credential);
             const userEmail = payload.email;
-
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('verifyingSpinner').classList.remove('hidden');
 
-            setTimeout(() => {
-                fetch(`${scriptURL}?checkEmail=${userEmail}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        document.getElementById('verifyingSpinner').classList.add('hidden');
-                        if (data && data.exists) {
-                            document.getElementById('alreadyMsg').classList.remove('hidden');
-                            if (data.adults !== undefined && data.kids !== undefined) {
-                                document.getElementById('reservedAdults').innerText = data.adults || 0;
-                                document.getElementById('reservedKids').innerText = data.kids || 0;
-                                document.getElementById('reservationDetails').classList.remove('hidden');
-                            }
-                        } else {
-                            document.getElementById('displayEmail').innerText = userEmail;
-                            document.getElementById('gmailAddress').value = userEmail;
-                            document.getElementById('rsvpForm').classList.remove('hidden');
+            fetch(`${scriptURL}?checkEmail=${userEmail}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('verifyingSpinner').classList.add('hidden');
+                    if (data && data.exists) {
+                        document.getElementById('alreadyMsg').classList.remove('hidden');
+                        if (data.adults !== undefined && data.kids !== undefined) {
+                            document.getElementById('reservedAdults').innerText = data.adults || 0;
+                            document.getElementById('reservedKids').innerText = data.kids || 0;
+                            document.getElementById('reservationDetails').classList.remove('hidden');
                         }
-                    })
-                    .catch(err => {
-                        console.error('Verify error:', err);
-                        document.getElementById('verifyingSpinner').classList.add('hidden');
+                    } else {
                         document.getElementById('displayEmail').innerText = userEmail;
                         document.getElementById('gmailAddress').value = userEmail;
                         document.getElementById('rsvpForm').classList.remove('hidden');
-                    });
-            }, 500);
+                    }
+                }).catch(() => {
+                    document.getElementById('verifyingSpinner').classList.add('hidden');
+                    document.getElementById('rsvpForm').classList.remove('hidden');
+                });
         };
+
+        const form = document.getElementById('rsvpForm');
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            document.getElementById('submitBtn').disabled = true;
+            const formData = new FormData(form);
+            const prefix = document.getElementById('countryPrefix').value;
+            const fullContact = prefix + document.getElementById('contact').value.replace(/\D/g, '');
+
+            const params = new URLSearchParams();
+            params.append('Name', formData.get('Name'));
+            params.append('Contact', fullContact);
+            params.append('Gmail', formData.get('Gmail'));
+            params.append('Time', new Date().toLocaleTimeString('en-PH'));
+
+            fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: params })
+                .then(() => {
+                    document.getElementById('rsvpForm').classList.add('hidden');
+                    document.getElementById('successMsg').classList.remove('hidden');
+                });
+        });
 
         const targetDate = new Date("April 26, 2026 15:00:00").getTime();
         function updateCountdown() {
             const now = new Date().getTime();
             const diff = targetDate - now;
             if (diff <= 0) return;
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((diff % (1000 * 60)) / 1000);
-            document.getElementById('days').innerText = d.toString().padStart(2, '0');
-            document.getElementById('hours').innerText = h.toString().padStart(2, '0');
-            document.getElementById('minutes').innerText = m.toString().padStart(2, '0');
-            document.getElementById('seconds').innerText = s.toString().padStart(2, '0');
+            document.getElementById('days').innerText = Math.floor(diff / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+            document.getElementById('hours').innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+            document.getElementById('minutes').innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            document.getElementById('seconds').innerText = Math.floor((diff % (1000 * 60)) / 1000).toString().padStart(2, '0');
         }
         setInterval(updateCountdown, 1000);
         updateCountdown();
@@ -375,44 +422,6 @@
             entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
         }, { threshold: 0.1 });
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-        const form = document.getElementById('rsvpForm');
-        form.addEventListener('submit', e => {
-            e.preventDefault();
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('btnLoader').classList.remove('hidden');
-
-            const formData = new FormData(form);
-            
-            const prefix = document.getElementById('countryPrefix').value;
-            const rawNumber = document.getElementById('contact').value;
-            const cleanNumber = rawNumber.replace(/\D/g, ''); 
-            const fullContact = prefix + cleanNumber;
-
-            const params = new URLSearchParams();
-            params.append('Name', formData.get('Name'));
-            params.append('Contact', fullContact);
-            params.append('Gmail', formData.get('Gmail'));
-            params.append('Time', new Date().toLocaleTimeString('en-PH'));
-
-            fetch(scriptURL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                body: params,
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            })
-            .then(() => {
-                document.getElementById('rsvpForm').classList.add('hidden');
-                document.getElementById('successMsg').classList.remove('hidden');
-            })
-            .catch(err => {
-                console.error("Submit Error:", err);
-                document.getElementById('submitBtn').disabled = false;
-                document.getElementById('btnLoader').classList.add('hidden');
-            });
-        });
     </script>
 </body>
 </html>
