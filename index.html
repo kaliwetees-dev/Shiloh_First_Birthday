@@ -273,6 +273,7 @@
                 <div class="text-7xl mb-6">🍯</div>
                 <h3 class="text-4xl mb-4 text-sky-900">Sweet!</h3>
                 <p class="text-stone-500">We've saved your response to our guest list. See you at the den!</p>
+                <div class="mt-8 text-xs text-stone-400 italic">You have already submitted an RSVP for this device.</div>
             </div>
         </div>
     </section>
@@ -284,6 +285,17 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbyX5gpD3qheR6CtS8fwpGkWfOTfAmhU7ZGWkRmNWrkTOVIpNdCWzczCm8giCFKBGHGl/exec';
+        const STORAGE_KEY = 'shiloh_birthday_rsvp_submitted';
+
+        // Check if already submitted on page load
+        window.addEventListener('load', () => {
+            if (localStorage.getItem(STORAGE_KEY)) {
+                document.getElementById('rsvpForm').classList.add('hidden');
+                const success = document.getElementById('successMsg');
+                success.classList.remove('hidden');
+                success.classList.add('active');
+            }
+        });
 
         // Countdown Timer Logic
         const targetDate = new Date("April 26, 2026 15:00:00").getTime();
@@ -337,9 +349,9 @@
             errorMsg.classList.add('hidden');
 
             const formData = new FormData(form);
-            // Append the +63 prefix to the contact value before sending
             const contactValue = document.getElementById('contact').value;
             formData.set('Contact', '+63 ' + contactValue);
+            formData.append('Time', new Date().toLocaleTimeString('en-PH'));
 
             const params = new URLSearchParams();
             for (const pair of formData) {
@@ -352,6 +364,9 @@
                 body: params
             })
             .then(() => {
+                // Store submission state in browser
+                localStorage.setItem(STORAGE_KEY, 'true');
+                
                 form.style.opacity = '0';
                 setTimeout(() => {
                     form.classList.add('hidden');
