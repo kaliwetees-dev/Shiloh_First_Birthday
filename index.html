@@ -239,7 +239,7 @@
             
             <!-- Auth Section -->
             <div id="authSection" class="flex flex-col items-center space-y-4 my-8">
-                <p class="text-center text-stone-500 max-w-xs text-sm">Please sign in with Google to RSVP. One response per account.</p>
+                <p class="text-center text-stone-500 max-w-xs text-sm">Please sign in with Google to RSVP.</p>
                 <div id="g_id_onload"
                      data-client_id="609636963928-h7d5ocpd1na3urpvu5podo5vgv1r27qq.apps.googleusercontent.com"
                      data-context="signin"
@@ -253,7 +253,7 @@
             <!-- Form -->
             <form id="rsvpForm" class="hidden space-y-6">
                 <div class="text-center bg-sky-50 p-4 rounded-2xl mb-8 flex items-center justify-center space-x-2 border border-sky-100">
-                    <span class="text-xs text-sky-700 font-bold uppercase">Logged in:</span>
+                    <span class="text-xs text-sky-700 font-bold uppercase">Signed in as:</span>
                     <span id="displayEmail" class="text-xs font-bold text-stone-600 italic"></span>
                 </div>
 
@@ -290,7 +290,6 @@
                 <div class="text-7xl mb-6">🍯</div>
                 <h3 class="text-4xl mb-4 text-sky-900 font-bold">Sweet!</h3>
                 <p class="text-stone-500">We've saved your response to our guest list. See you at the den!</p>
-                <div id="alreadySubmittedLabel" class="hidden mt-8 text-xs text-stone-400 italic">You have already submitted an RSVP using this account.</div>
             </div>
         </div>
     </section>
@@ -301,7 +300,6 @@
 
     <script>
         const scriptURL = 'https://script.google.com/macros/s/AKfycbyX5gpD3qheR6CtS8fwpGkWfOTfAmhU7ZGWkRmNWrkTOVIpNdCWzczCm8giCFKBGHGl/exec';
-        const STORAGE_KEY_EMAIL = 'shiloh_birthday_rsvp_gmail';
 
         function decodeJwtResponse(token) {
             var base64Url = token.split('.')[1];
@@ -315,37 +313,12 @@
         window.handleCredentialResponse = (response) => {
             const payload = decodeJwtResponse(response.credential);
             const userEmail = payload.email;
+
             document.getElementById('authSection').classList.add('hidden');
             document.getElementById('displayEmail').innerText = userEmail;
             document.getElementById('gmailAddress').value = userEmail;
-            localStorage.setItem(STORAGE_KEY_EMAIL, userEmail);
-            if (localStorage.getItem(`submitted_${userEmail}`)) {
-                showSuccess(true);
-            } else {
-                document.getElementById('rsvpForm').classList.remove('hidden');
-            }
+            document.getElementById('rsvpForm').classList.remove('hidden');
         };
-
-        window.addEventListener('load', () => {
-            const savedEmail = localStorage.getItem(STORAGE_KEY_EMAIL);
-            if (savedEmail) {
-                document.getElementById('authSection').classList.add('hidden');
-                document.getElementById('displayEmail').innerText = savedEmail;
-                document.getElementById('gmailAddress').value = savedEmail;
-                if (localStorage.getItem(`submitted_${savedEmail}`)) {
-                    showSuccess(true);
-                } else {
-                    document.getElementById('rsvpForm').classList.remove('hidden');
-                }
-            }
-        });
-
-        function showSuccess(already = false) {
-            document.getElementById('rsvpForm').classList.add('hidden');
-            const success = document.getElementById('successMsg');
-            success.classList.remove('hidden');
-            if (already) document.getElementById('alreadySubmittedLabel').classList.remove('hidden');
-        }
 
         const targetDate = new Date("April 26, 2026 15:00:00").getTime();
         function updateCountdown() {
@@ -392,9 +365,8 @@
 
             fetch(scriptURL, { method: 'POST', mode: 'no-cors', body: params })
             .then(() => {
-                const userEmail = document.getElementById('gmailAddress').value;
-                localStorage.setItem(`submitted_${userEmail}`, 'true');
-                showSuccess();
+                document.getElementById('rsvpForm').classList.add('hidden');
+                document.getElementById('successMsg').classList.remove('hidden');
             })
             .catch(error => {
                 console.error('Error!', error.message);
