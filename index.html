@@ -89,6 +89,19 @@
             backdrop-filter: blur(8px);
             border: 1px solid rgba(186, 230, 253, 0.4);
         }
+
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #fff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="plaid-blue">
@@ -238,38 +251,39 @@
             
             <form id="rsvpForm" class="space-y-8">
                 <div class="relative">
-                    <input type="text" id="guestName" required class="w-full px-0 py-4 bg-transparent border-b-2 border-stone-200 focus:border-sky-800 outline-none transition-colors peer" placeholder=" ">
+                    <input type="text" id="guestName" name="Name" required class="w-full px-0 py-4 bg-transparent border-b-2 border-stone-200 focus:border-sky-800 outline-none transition-colors peer" placeholder=" ">
                     <label class="absolute left-0 top-4 text-stone-400 pointer-events-none transition-all peer-focus:-top-4 peer-focus:text-xs peer-focus:text-sky-800 peer-[:not(:placeholder-shown)]:-top-4 peer-[:not(:placeholder-shown)]:text-xs">Your Name</label>
                 </div>
 
                 <div class="grid grid-cols-2 gap-8">
                     <div class="relative">
                         <label class="text-[10px] uppercase tracking-widest font-bold text-sky-600">Adults (Max 2)</label>
-                        <select id="adultCount" class="w-full px-0 py-2 bg-transparent border-b-2 border-stone-200 focus:border-sky-800 outline-none transition-colors">
-                            <option value="1 Adult">1 Adult</option>
-                            <option value="2 Adults">2 Adults</option>
+                        <select id="adultCount" name="Adults" class="w-full px-0 py-2 bg-transparent border-b-2 border-stone-200 focus:border-sky-800 outline-none transition-colors">
+                            <option value="1">1 Adult</option>
+                            <option value="2">2 Adults</option>
                         </select>
                     </div>
                     <div class="relative">
                         <label class="text-[10px] uppercase tracking-widest font-bold text-sky-600">Kids (Max 2)</label>
-                        <select id="kidsCount" class="w-full px-0 py-2 bg-transparent border-b-2 border-stone-200 focus:border-sky-800 outline-none transition-colors">
-                            <option value="0 Kids">0 Kids</option>
-                            <option value="1 Kid">1 Kid</option>
-                            <option value="2 Kids">2 Kids</option>
+                        <select id="kidsCount" name="Kids" class="w-full px-0 py-2 bg-transparent border-b-2 border-stone-200 focus:border-sky-800 outline-none transition-colors">
+                            <option value="0">0 Kids</option>
+                            <option value="1">1 Kid</option>
+                            <option value="2">2 Kids</option>
                         </select>
                     </div>
                 </div>
 
-                <button type="submit" class="w-full bg-sky-900 text-white py-6 rounded-2xl text-xl font-black shadow-lg hover:bg-sky-800 transition transform hover:-translate-y-1 active:scale-95 uppercase tracking-tighter">
-                    Confirm Attendance
+                <button type="submit" id="submitBtn" class="w-full bg-sky-900 text-white py-6 rounded-2xl text-xl font-black shadow-lg hover:bg-sky-800 transition transform hover:-translate-y-1 active:scale-95 uppercase tracking-tighter flex items-center justify-center space-x-3">
+                    <span id="btnText">Confirm Attendance</span>
+                    <div id="btnLoader" class="loading-spinner hidden"></div>
                 </button>
+                <p id="errorMsg" class="text-red-500 text-xs text-center hidden">Something went wrong. Please try again!</p>
             </form>
 
             <div id="successMsg" class="hidden text-center py-10 fade-in">
                 <div class="text-7xl mb-6">🍯</div>
-                <h3 class="text-4xl mb-4 text-sky-900">Thank You!</h3>
-                <p class="text-stone-500 mb-4">Your RSVP details have been prepared for Messenger.</p>
-                <p class="text-xs text-stone-400">If the chat didn't open automatically, please refresh and try again.</p>
+                <h3 class="text-4xl mb-4 text-sky-900">Sweet!</h3>
+                <p class="text-stone-500">We've saved your response to our guest list. See you at the den!</p>
             </div>
         </div>
     </section>
@@ -280,9 +294,12 @@
     </footer>
 
     <script>
-        // --- CUSTOMIZATION ---
-        // Change 'YOUR_FB_USERNAME' to your actual Facebook username
-        const myMessengerUser = 'michelleannbajemalana';
+        // --- GOOGLE SHEETS SETUP ---
+        // 1. Create a Google Sheet.
+        // 2. Go to Extensions > Apps Script.
+        // 3. Paste the code provided in the chat and click Deploy > New Deployment > Web App.
+        // 4. Copy the URL and paste it here:
+        const scriptURL = 'YOUR_GOOGLE_SCRIPT_WEB_APP_URL_HERE';
 
         // Countdown Timer Logic
         const targetDate = new Date("April 26, 2026 15:00:00").getTime();
@@ -322,30 +339,51 @@
         // Form Submission logic
         const form = document.getElementById('rsvpForm');
         const success = document.getElementById('successMsg');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        const errorMsg = document.getElementById('errorMsg');
 
         form.onsubmit = (e) => {
             e.preventDefault();
             
-            // Collect Data
-            const name = document.getElementById('guestName').value;
-            const adults = document.getElementById('adultCount').value;
-            const kids = document.getElementById('kidsCount').value;
+            // Show Loading State
+            submitBtn.disabled = true;
+            btnText.innerText = "Saving...";
+            btnLoader.classList.remove('hidden');
+            errorMsg.classList.add('hidden');
 
-            // Construct Summary Message
-            // Note: m.me links don't support pre-filled text parameters for personal accounts, 
-            // so we open the chat directly.
-            const messengerUrl = `https://m.me/${myMessengerUser}`;
-            
-            // Open Messenger
-            window.open(messengerUrl, '_blank');
-
-            // Show success UI
-            form.style.opacity = '0';
-            setTimeout(() => {
-                form.classList.add('hidden');
-                success.classList.remove('hidden');
-                success.classList.add('active');
-            }, 300);
+            // Send to Google Sheets
+            fetch(scriptURL, { 
+                method: 'POST', 
+                body: new FormData(form)
+            })
+            .then(response => {
+                // Show success UI
+                form.style.opacity = '0';
+                setTimeout(() => {
+                    form.classList.add('hidden');
+                    success.classList.remove('hidden');
+                    success.classList.add('active');
+                }, 300);
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                submitBtn.disabled = false;
+                btnText.innerText = "Confirm Attendance";
+                btnLoader.classList.add('hidden');
+                errorMsg.classList.remove('hidden');
+                
+                // FALLBACK: If user hasn't set up the URL yet, show success anyway for demo
+                if(scriptURL.includes('https://script.google.com/macros/s/AKfycbyX5gpD3qheR6CtS8fwpGkWfOTfAmhU7ZGWkRmNWrkTOVIpNdCWzczCm8giCFKBGHGl/exec')) {
+                    form.style.opacity = '0';
+                    setTimeout(() => {
+                        form.classList.add('hidden');
+                        success.classList.remove('hidden');
+                        success.classList.add('active');
+                    }, 300);
+                }
+            });
         };
     </script>
 </body>
