@@ -83,6 +83,11 @@
             backdrop-filter: blur(8px);
             border: 1px solid rgba(186, 230, 253, 0.4);
         }
+        
+        /* Smooth modal transition */
+        .modal-content {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
     </style>
 </head>
 <body class="plaid-blue">
@@ -99,7 +104,7 @@
                 <a href="#home" class="hover:text-sky-600 transition">Home</a>
                 <a href="#about" class="hover:text-sky-600 transition">Our Story</a>
                 <a href="#details" class="hover:text-sky-600 transition">Details</a>
-                <a href="https://m.me/5426739737420691" class="rsvp-btn bg-sky-800 text-white px-6 py-2 rounded-full hover:bg-sky-900 transition shadow-md">RSVP</a>
+                <a href="#" class="rsvp-btn bg-sky-800 text-white px-6 py-2 rounded-full hover:bg-sky-900 transition shadow-md">RSVP</a>
             </div>
         </div>
     </nav>
@@ -153,7 +158,7 @@
                 </div>
             </div>
 
-            <a href="https://m.me/5426739737420691" class="rsvp-btn inline-block bg-sky-900 text-stone-50 px-12 py-5 rounded-full text-lg font-bold hover:bg-stone-800 transition transform hover:scale-110 shadow-xl tracking-widest uppercase">
+            <a href="#" class="rsvp-btn inline-block bg-sky-900 text-stone-50 px-12 py-5 rounded-full text-lg font-bold hover:bg-stone-800 transition transform hover:scale-110 shadow-xl tracking-widest uppercase">
                 Count Me In
             </a>
         </div>
@@ -221,10 +226,10 @@
     <section id="rsvp" class="py-32 px-6 flex flex-col items-center">
         <div class="max-w-2xl w-full bg-white border border-sky-100 p-10 md:p-16 rounded-[4rem] shadow-2xl reveal text-center">
             <h2 class="text-5xl mb-8 text-sky-900 font-bold">We Can't Wait!</h2>
-            <a href="https://m.me/5426739737420691" class="rsvp-btn inline-block w-full md:w-auto bg-sky-900 text-stone-50 px-12 py-6 rounded-full text-xl font-bold hover:bg-sky-800 transition transform hover:-translate-y-1 active:scale-95 shadow-xl tracking-widest uppercase">
+            <button class="rsvp-btn inline-block w-full md:w-auto bg-sky-900 text-stone-50 px-12 py-6 rounded-full text-xl font-bold hover:bg-sky-800 transition transform hover:-translate-y-1 active:scale-95 shadow-xl tracking-widest uppercase">
                 Count Me In
-            </a>
-            <p class="text-stone-500 mt-8 text-sm max-w-xs mx-auto">Clicking this button will automatically copy <b>"Yes! Count me in"</b> to your clipboard and open Messenger. Just hit paste to send!</p>
+            </button>
+            <p class="text-stone-500 mt-8 text-sm max-w-xs mx-auto">Clicking this button will help you send your RSVP straight to our Messenger!</p>
         </div>
     </section>
 
@@ -232,47 +237,87 @@
         <p>Shiloh's 1st Birthday • 2026</p>
     </footer>
 
-    <!-- Toast Notification -->
-    <div id="copyToast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-sky-900 text-white px-6 py-4 rounded-full shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none z-[100] flex items-center gap-3">
-        <span class="text-2xl">📋</span>
-        <span class="font-bold text-sm tracking-wider">Message copied! Just paste it in the chat.</span>
+    <!-- Interactive RSVP Modal -->
+    <div id="rsvpModal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-sky-900/60 backdrop-blur-sm px-4 opacity-0 transition-opacity duration-300">
+        <div class="modal-content bg-white p-8 rounded-[3rem] shadow-2xl max-w-md w-full text-center relative transform scale-90 border-2 border-sky-100">
+            <button id="closeModal" class="absolute top-6 right-6 text-stone-400 hover:text-sky-900 text-3xl leading-none">&times;</button>
+            
+            <div class="text-6xl mb-4">💬</div>
+            <h3 class="text-3xl font-bold text-sky-900 mb-2">Let's Chat!</h3>
+            <p class="text-stone-500 mb-6 text-sm">To prevent spam, Messenger no longer allows automatic messages. Please copy the RSVP text below, then open Messenger to paste and send!</p>
+
+            <div class="bg-sky-50 p-4 rounded-2xl mb-8 border border-sky-200 flex justify-between items-center gap-4">
+                <span class="font-bold text-sky-900 text-lg truncate">Yes! Count me in</span>
+                <button id="copyBtn" class="bg-sky-200 text-sky-800 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-sky-300 transition shrink-0">
+                    Copy Text
+                </button>
+            </div>
+
+            <a href="https://m.me/michelleannbajemalana" target="_blank" rel="noopener noreferrer" class="block w-full bg-[#0084ff] text-white py-5 rounded-full font-bold text-lg hover:bg-blue-600 transition shadow-lg mb-2">
+                Open Messenger
+            </a>
+            <p class="text-xs text-stone-400 mt-4 italic">Don't forget to paste the message!</p>
+        </div>
     </div>
 
     <script>
-        // RSVP Button Copy & Redirect Logic
-        const toast = document.getElementById('copyToast');
+        // --- Modal & Copy Logic ---
+        const modal = document.getElementById('rsvpModal');
+        const modalContent = modal.querySelector('.modal-content');
+        const closeBtn = document.getElementById('closeModal');
+        const copyBtn = document.getElementById('copyBtn');
+
+        // Open Modal
         document.querySelectorAll('.rsvp-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
+            btn.addEventListener('click', (e) => {
                 e.preventDefault();
-                
-                // 1. Copy text to clipboard
-                const textArea = document.createElement("textarea");
-                textArea.value = "Yes! Count me in";
-                document.body.appendChild(textArea);
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                } catch (err) {
-                    console.error('Clipboard copy failed', err);
-                }
-                document.body.removeChild(textArea);
-
-                // 2. Show the visual notification
-                toast.classList.remove('opacity-0');
-                setTimeout(() => {
-                    toast.classList.add('opacity-0');
-                }, 4000);
-
-                // 3. Open Messenger profile
-                // Using window.location.href instead of window.open forces the in-app browser
-                // to hand the link over to the OS, breaking out of the loop!
-                setTimeout(() => {
-                    window.location.href = "https://m.me/5426739737420691";
-                }, 300);
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                // Trigger reflow for animation
+                void modal.offsetWidth; 
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-90');
+                modalContent.classList.add('scale-100');
             });
         });
 
-        // Countdown Timer Logic
+        // Close Modal
+        const closeModal = () => {
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-90');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                copyBtn.innerText = 'Copy Text';
+                copyBtn.classList.remove('bg-green-200', 'text-green-800');
+                copyBtn.classList.add('bg-sky-200', 'text-sky-800');
+            }, 300);
+        };
+
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Copy Text Button
+        copyBtn.addEventListener('click', () => {
+            const textArea = document.createElement("textarea");
+            textArea.value = "Yes! Count me in";
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                copyBtn.innerText = 'Copied! ✓';
+                copyBtn.classList.remove('bg-sky-200', 'text-sky-800');
+                copyBtn.classList.add('bg-green-200', 'text-green-800');
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+            document.body.removeChild(textArea);
+        });
+
+        // --- Countdown Timer Logic ---
         const targetDate = new Date("April 26, 2026 15:00:00").getTime();
         function updateCountdown() {
             const now = new Date().getTime();
@@ -286,7 +331,7 @@
         setInterval(updateCountdown, 1000);
         updateCountdown();
 
-        // Scroll Animation Observer
+        // --- Scroll Animation Observer ---
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
         }, { threshold: 0.1 });
