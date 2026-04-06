@@ -99,7 +99,7 @@
                 <a href="#home" class="hover:text-sky-600 transition">Home</a>
                 <a href="#about" class="hover:text-sky-600 transition">Our Story</a>
                 <a href="#details" class="hover:text-sky-600 transition">Details</a>
-                <a href="https://m.me/5426739737420691?text=Yes!%20Count%20me%20in" target="_blank" rel="noopener noreferrer" class="bg-sky-800 text-white px-6 py-2 rounded-full hover:bg-sky-900 transition shadow-md">RSVP</a>
+                <a href="#" class="rsvp-btn bg-sky-800 text-white px-6 py-2 rounded-full hover:bg-sky-900 transition shadow-md">RSVP</a>
             </div>
         </div>
     </nav>
@@ -153,7 +153,7 @@
                 </div>
             </div>
 
-            <a href="https://m.me/5426739737420691?text=Yes!%20Count%20me%20in" target="_blank" rel="noopener noreferrer" class="inline-block bg-sky-900 text-stone-50 px-12 py-5 rounded-full text-lg font-bold hover:bg-stone-800 transition transform hover:scale-110 shadow-xl tracking-widest uppercase">
+            <a href="#" class="rsvp-btn inline-block bg-sky-900 text-stone-50 px-12 py-5 rounded-full text-lg font-bold hover:bg-stone-800 transition transform hover:scale-110 shadow-xl tracking-widest uppercase">
                 Count Me In
             </a>
         </div>
@@ -221,10 +221,10 @@
     <section id="rsvp" class="py-32 px-6 flex flex-col items-center">
         <div class="max-w-2xl w-full bg-white border border-sky-100 p-10 md:p-16 rounded-[4rem] shadow-2xl reveal text-center">
             <h2 class="text-5xl mb-8 text-sky-900 font-bold">We Can't Wait!</h2>
-            <a href="https://m.me/5426739737420691?text=Yes!%20Count%20me%20in" target="_blank" rel="noopener noreferrer" class="inline-block w-full md:w-auto bg-sky-900 text-stone-50 px-12 py-6 rounded-full text-xl font-bold hover:bg-sky-800 transition transform hover:-translate-y-1 active:scale-95 shadow-xl tracking-widest uppercase">
+            <a href="#" class="rsvp-btn inline-block w-full md:w-auto bg-sky-900 text-stone-50 px-12 py-6 rounded-full text-xl font-bold hover:bg-sky-800 transition transform hover:-translate-y-1 active:scale-95 shadow-xl tracking-widest uppercase">
                 Count Me In
             </a>
-            <p class="text-stone-500 mt-8 text-sm max-w-xs mx-auto">Clicking this button will automatically open Messenger to send your RSVP directly to us.</p>
+            <p class="text-stone-500 mt-8 text-sm max-w-xs mx-auto">Clicking this button will automatically copy <b>"Yes! Count me in"</b> to your clipboard and open Messenger. Just hit paste to send!</p>
         </div>
     </section>
 
@@ -232,7 +232,42 @@
         <p>Shiloh's 1st Birthday • 2026</p>
     </footer>
 
+    <!-- Toast Notification -->
+    <div id="copyToast" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-sky-900 text-white px-6 py-4 rounded-full shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none z-[100] flex items-center gap-3">
+        <span class="text-2xl">📋</span>
+        <span class="font-bold text-sm tracking-wider">Message copied! Just paste it in the chat.</span>
+    </div>
+
     <script>
+        // RSVP Button Copy & Redirect Logic
+        const toast = document.getElementById('copyToast');
+        document.querySelectorAll('.rsvp-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // 1. Copy text to clipboard
+                const textArea = document.createElement("textarea");
+                textArea.value = "Yes! Count me in";
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                } catch (err) {
+                    console.error('Clipboard copy failed', err);
+                }
+                document.body.removeChild(textArea);
+
+                // 2. Show the visual notification
+                toast.classList.remove('opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('opacity-0');
+                }, 4000);
+
+                // 3. Open Messenger profile
+                window.open("https://m.me/michelleannbajemalana", "_blank");
+            });
+        });
+
         // Countdown Timer Logic
         const targetDate = new Date("April 26, 2026 15:00:00").getTime();
         function updateCountdown() {
