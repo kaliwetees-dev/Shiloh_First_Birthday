@@ -253,8 +253,9 @@
                 </button>
             </div>
 
-            <a href="https://m.me/michelleannbajemalana" target="_blank" rel="noopener noreferrer" class="block w-full bg-[#0084ff] text-white py-5 rounded-full font-bold text-lg hover:bg-blue-600 transition shadow-lg mb-2">
-                Open Messenger
+            <!-- Disabled initially -->
+            <a id="messengerBtn" href="https://m.me/michelleannbajemalana" target="_blank" rel="noopener noreferrer" class="block w-full bg-stone-300 text-stone-500 py-5 rounded-full font-bold text-lg transition pointer-events-none cursor-not-allowed mb-2">
+                Copy text to continue
             </a>
             <p class="text-xs text-stone-400 mt-4 italic">Don't forget to paste the message!</p>
         </div>
@@ -266,6 +267,7 @@
         const modalContent = modal.querySelector('.modal-content');
         const closeBtn = document.getElementById('closeModal');
         const copyBtn = document.getElementById('copyBtn');
+        const messengerBtn = document.getElementById('messengerBtn');
 
         // Open Modal
         document.querySelectorAll('.rsvp-btn').forEach(btn => {
@@ -289,9 +291,16 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
+                
+                // Reset copy button
                 copyBtn.innerText = 'Copy Text';
                 copyBtn.classList.remove('bg-green-200', 'text-green-800');
                 copyBtn.classList.add('bg-sky-200', 'text-sky-800');
+                
+                // Reset messenger button to locked state
+                messengerBtn.innerText = 'Copy text to continue';
+                messengerBtn.classList.remove('bg-[#0084ff]', 'text-white', 'hover:bg-blue-600', 'shadow-lg');
+                messengerBtn.classList.add('bg-stone-300', 'text-stone-500', 'pointer-events-none', 'cursor-not-allowed');
             }, 300);
         };
 
@@ -308,9 +317,17 @@
             textArea.select();
             try {
                 document.execCommand('copy');
+                
+                // Update copy button success state
                 copyBtn.innerText = 'Copied! ✓';
                 copyBtn.classList.remove('bg-sky-200', 'text-sky-800');
                 copyBtn.classList.add('bg-green-200', 'text-green-800');
+                
+                // Unlock messenger button
+                messengerBtn.innerText = 'Open Messenger';
+                messengerBtn.classList.remove('bg-stone-300', 'text-stone-500', 'pointer-events-none', 'cursor-not-allowed');
+                messengerBtn.classList.add('bg-[#0084ff]', 'text-white', 'hover:bg-blue-600', 'shadow-lg');
+                
             } catch (err) {
                 console.error('Copy failed', err);
             }
